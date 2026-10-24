@@ -1,0 +1,273 @@
+// Prisma Schema for ScholarAI: AI-Powered Scholarship Discovery & Eligibility Platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum DegreeLevel {
+  HIGH_SCHOOL
+  BACHELORS
+  MASTERS
+  PHD
+  POSTDOC
+}
+
+enum FundingType {
+  FULL_TUITION
+  FULLY_FUNDED
+  PARTIAL
+  STIPEND_ONLY
+}
+
+enum CriterionType {
+  ACADEMIC_GPA
+  DEGREE_LEVEL
+  COURSE_OF_STUDY
+  CITIZENSHIP
+  RESIDENCY
+  FINANCIAL_NEED
+  LANGUAGE_TEST
+  GENERAL
+}
+
+enum CriterionOperator {
+  EQUALS
+  IN
+  GTE
+  LTE
+  BETWEEN
+  CONTAINS
+}
+
+enum MatchStatus {
+  HIGH_MATCH
+  MODERATE_MATCH
+  LOW_MATCH
+  INELIGIBLE
+  INCOMPLETE_DATA
+}
+
+enum ApplicationStatus {
+  INTERESTED
+  PREPARING_DOCUMENTS
+  READY_TO_APPLY
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+// 1. User Account
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?
+  clerkId      String?  @unique
+  name         String
+  role         Role     @default(STUDENT)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  profile            StudentProfile?
+  savedScholarships  SavedScholarship[]
+  applications       ScholarshipApplication[]
+  matches            ScholarshipMatch[]
+
+  @@index([email])
+  @@index([clerkId])
+  @@map("users")
+}
+
+// 2. Student Profile
+model StudentProfile {
+  id                  String       @id @default(cuid())
+  userId              String       @unique
+  educationLevel      DegreeLevel  @default(BACHELORS)
+  fieldOfStudy        String
+  gpa                 Float?
+  gpaScale            Float        @default(4.0)
+  graduationYear      Int?
+  countryOfOrigin     String       // Citizenship
+  currentCountry      String       // Location/residence
+  familyIncomeUsd     Float?
+  ieltsScore          Float?
+  toeflScore          Float?
+  greScore            Int?
+  workExperienceYears Float        @default(0)
+  publicationsCount   Int          @default(0)
+  achievements        String?
+  skills              String[]     @default([])
+  isVerified          Boolean      @default(false)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([educationLevel, fieldOfStudy])
+  @@index([countryOfOrigin])
+  @@map("student_profiles")
+}
+
+// 3. Scholarship Opportunity
+model Scholarship {
+  id                      String        @id @default(cuid())
+  title                   String
+  provider                String
+  description             String        @db.Text
+  awardAmount             Float?
+  currency                String        @default("USD")
+  fundingType             FundingType   @default(FULLY_FUNDED)
+  deadline                DateTime
+  educationLevels         DegreeLevel[]
+  eligibleCourses         String[]      @default([])
+  locationRestrictions    String[]      @default([])
+  citizenshipRequirements String[]      @default([])
+  minGpa                  Float?
+  minIelts                Float?
+  minToefl                Float?
+  maxFamilyIncome         Float?
+  officialUrl             String
+  isVerified              Boolean       @default(true)
+  isActive                Boolean       @default(true)
+  viewCount               Int           @default(0)
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  criteria          EligibilityCriterion[]
+  documents         ScholarshipDocument[]
+  matches           ScholarshipMatch[]
+  savedBy           SavedScholarship[]
+  applications      ScholarshipApplication[]
+
+  @@index([deadline])
+  @@index([isActive, isVerified])
+  @@index([provider])
+  @@map("scholarships")
+}
+
+// 4. Fine-grained Eligibility Criterion for Deterministic Rules
+model EligibilityCriterion {
+  id            String            @id @default(cuid())
+  scholarshipId String
+  criterionType CriterionType
+  operator      CriterionOperator @default(EQUALS)
+  targetValue   String            // Stringified value or JSON e.g. "3.5", "['MASTERS']"
+  isMandatory   Boolean           @default(true)
+  weight        Float             @default(1.0)
+  description   String
+
+  scholarship Scholarship @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([scholarshipId])
+  @@index([criterionType])
+  @@map("eligibility_criteria")
+}
+
+// 5. Ingested Official Document / Policy
+model ScholarshipDocument {
+  id            String   @id @default(cuid())
+  scholarshipId String
+  title         String
+  sourceUrl     String?
+  contentText   String   @db.Text
+  version       Int      @default(1)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  scholarship Scholarship     @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
+  chunks      DocumentChunk[]
+
+  @@index([scholarshipId])
+  @@map("scholarship_documents")
+}
+
+// 6. Text Chunks & Vector Metadata for RAG
+model DocumentChunk {
+  id           String   @id @default(cuid())
+  documentId   String
+  chunkIndex   Int
+  chunkContent String   @db.Text
+  tokenCount   Int?
+  metadata     Json?    // Stores provider, title, section headers, etc.
+  embedding    Float[]  // 768-dim vector stored as float array (with pgvector/cosine support)
+  createdAt    DateTime @default(now())
+
+  document ScholarshipDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([chunkIndex])
+  @@map("document_chunks")
+}
+
+// 7. Cached Deterministic & AI Match Result
+model ScholarshipMatch {
+  id               String      @id @default(cuid())
+  userId           String
+  scholarshipId    String
+  eligibilityScore Float       // Deterministic score 0-100
+  status           MatchStatus @default(MODERATE_MATCH)
+  matchedCriteria  Json        // Array of { criterion, studentValue, reason }
+  unmetCriteria    Json        // Array of { criterion, required, actual, reason }
+  missingInfo      Json        // Array of { field, description, impact }
+  explanation      String      @db.Text // Gemini natural language breakdown
+  nextSteps        String[]    @default([])
+  calculatedAt     DateTime    @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scholarship Scholarship @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, scholarshipId])
+  @@index([userId])
+  @@index([scholarshipId])
+  @@index([eligibilityScore])
+  @@map("scholarship_matches")
+}
+
+// 8. Saved / Bookmarked Scholarships
+model SavedScholarship {
+  id            String   @id @default(cuid())
+  userId        String
+  scholarshipId String
+  savedAt       DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scholarship Scholarship @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, scholarshipId])
+  @@index([userId])
+  @@map("saved_scholarships")
+}
+
+// 9. Student Scholarship Application Tracker
+model ScholarshipApplication {
+  id             String            @id @default(cuid())
+  userId         String
+  scholarshipId  String
+  status         ApplicationStatus @default(INTERESTED)
+  deadline       DateTime?
+  personalNotes  String?           @db.Text
+  submissionDate DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scholarship Scholarship @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, scholarshipId])
+  @@index([userId])
+  @@index([status])
+  @@map("scholarship_applications")
+}

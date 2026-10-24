@@ -1,0 +1,220 @@
+{
+  "info": {
+    "name": "ScholarAI Production REST API",
+    "description": "Postman API test collection for ScholarAI: Authentication, Profiles, Scholarships, Deterministic Matching, RAG Assistant, and Application Tracking.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "scholarshipId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "POST /api/auth/register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Aarav Sharma\",\n  \"email\": \"aarav@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"role\": \"STUDENT\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register" }
+          }
+        },
+        {
+          "name": "POST /api/auth/login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"aarav@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login" }
+          }
+        },
+        {
+          "name": "GET /api/auth/me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/me" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Student Profile",
+      "item": [
+        {
+          "name": "GET /api/profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/profile" }
+          }
+        },
+        {
+          "name": "PUT /api/profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"educationLevel\": \"MASTERS\",\n  \"fieldOfStudy\": \"Computer Science\",\n  \"gpa\": 3.8,\n  \"gpaScale\": 4.0,\n  \"graduationYear\": 2025,\n  \"countryOfOrigin\": \"India\",\n  \"currentCountry\": \"India\",\n  \"familyIncomeUsd\": 22000,\n  \"ieltsScore\": 7.5,\n  \"workExperienceYears\": 2,\n  \"publicationsCount\": 1,\n  \"skills\": [\"Machine Learning\", \"Python\"]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/profile" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Scholarship Discovery",
+      "item": [
+        {
+          "name": "GET /api/scholarships (Faceted Search)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/scholarships?q=Fulbright&educationLevel=MASTERS&limit=10&page=1"
+            }
+          }
+        },
+        {
+          "name": "GET /api/scholarships/:id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/scholarships/{{scholarshipId}}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Eligibility Matching",
+      "item": [
+        {
+          "name": "POST /api/matches (Evaluate Single)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scholarshipId\": \"{{scholarshipId}}\",\n  \"forceRefresh\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/matches" }
+          }
+        },
+        {
+          "name": "GET /api/matches",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/matches" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. RAG Scholarship Assistant",
+      "item": [
+        {
+          "name": "POST /api/assistant (Ask Grounded Question)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"What are the minimum work experience hours required for Chevening?\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/assistant" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Application Tracking",
+      "item": [
+        {
+          "name": "GET /api/applications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/applications" }
+          }
+        },
+        {
+          "name": "POST /api/applications (Add to Tracker)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scholarshipId\": \"{{scholarshipId}}\",\n  \"status\": \"INTERESTED\",\n  \"personalNotes\": \"Discuss recommendation letters with Dr. Smith\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/applications" }
+          }
+        },
+        {
+          "name": "PATCH /api/applications/:id (Update Status)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SUBMITTED\",\n  \"submissionDate\": \"2026-10-24T12:00:00.000Z\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/applications/app_id_placeholder" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Admin Operations",
+      "item": [
+        {
+          "name": "POST /api/admin/ingest",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scholarshipId\": \"{{scholarshipId}}\",\n  \"title\": \"Official Work Policy Appendix\",\n  \"contentText\": \"Candidates must submit written proof from former employers verifying at least 2,800 clock hours of documented work.\",\n  \"sourceUrl\": \"https://provider.org/policy\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/admin/ingest" }
+          }
+        }
+      ]
+    }
+  ]
+}
