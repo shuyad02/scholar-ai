@@ -34,8 +34,11 @@ export default async function Home() {
           <Link className="text-sm font-medium hover:text-primary transition-colors" href="/dashboard/assistant">
             AI Assistant
           </Link>
-          <Link href="/dashboard">
-            <Button size="sm">Get Started</Button>
+          <Link href="/login">
+            <Button size="sm" variant="outline">Login</Button>
+          </Link>
+          <Link href="/register">
+            <Button size="sm">Register</Button>
           </Link>
         </nav>
       </header>
