@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { RegisterSchema } from "@/lib/validations";
 import { hashPassword, signToken } from "@/lib/auth";
 import { successResponse, errorResponse, AppError } from "@/lib/api-response";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,6 +46,9 @@ export async function POST(req: NextRequest) {
       name: user.name,
       role: user.role,
     });
+
+    // 5. Send welcome email (non-blocking — does NOT delay the API response)
+    sendWelcomeEmail({ to: user.email, name: user.name }).catch(() => {});
 
     const response = successResponse(
       {

@@ -4,6 +4,7 @@ import { requireAuthUser } from "@/lib/auth";
 import { ApplicationCreateSchema } from "@/lib/validations";
 import { successResponse, errorResponse, AppError } from "@/lib/api-response";
 import { ApplicationStatus } from "@prisma/client";
+import { sendApplicationUpdateEmail } from "@/lib/email";
 
 /**
  * GET /api/applications
@@ -109,6 +110,17 @@ export async function POST(req: NextRequest) {
         scholarship: true,
       },
     });
+
+    // 4. Send email notification for new application (non-blocking)
+    sendApplicationUpdateEmail({
+      to: session.email,
+      name: session.name,
+      scholarshipTitle: application.scholarship.title,
+      provider: application.scholarship.provider,
+      oldStatus: "",
+      newStatus: application.status,
+      notes: application.personalNotes ?? undefined,
+    }).catch(() => {});
 
     return successResponse(application, "Application tracked successfully", undefined, 201);
   } catch (error) {

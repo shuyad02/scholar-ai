@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { LoginSchema } from "@/lib/validations";
 import { verifyPassword, signToken } from "@/lib/auth";
 import { successResponse, errorResponse, AppError } from "@/lib/api-response";
+import { sendLoginNotificationEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,6 +35,14 @@ export async function POST(req: NextRequest) {
       name: user.name,
       role: user.role,
     });
+
+    // 4. Send login notification email (non-blocking)
+    const loginTime = new Date().toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+    sendLoginNotificationEmail({ to: user.email, name: user.name, loginTime }).catch(() => {});
 
     const response = successResponse(
       {

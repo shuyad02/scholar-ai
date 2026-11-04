@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuthUser } from "@/lib/auth";
 import { ApplicationUpdateSchema } from "@/lib/validations";
 import { successResponse, errorResponse, AppError } from "@/lib/api-response";
+import { sendApplicationUpdateEmail } from "@/lib/email";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -72,6 +73,19 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         scholarship: true,
       },
     });
+
+    // Send email notification for status update (non-blocking)
+    if (validated.status && validated.status !== existing.status) {
+      sendApplicationUpdateEmail({
+        to: session.email,
+        name: session.name,
+        scholarshipTitle: updated.scholarship.title,
+        provider: updated.scholarship.provider,
+        oldStatus: existing.status,
+        newStatus: updated.status,
+        notes: updated.personalNotes ?? undefined,
+      }).catch(() => {});
+    }
 
     return successResponse(updated, "Application updated successfully");
   } catch (error) {

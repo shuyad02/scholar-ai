@@ -6,6 +6,7 @@ import { evaluateEligibility } from "@/lib/matching-engine";
 import { synthesizeEligibilityExplanation } from "@/lib/gemini-service";
 import { successResponse, errorResponse, AppError } from "@/lib/api-response";
 import { Prisma } from "@prisma/client";
+import { sendMatchAlertEmail } from "@/lib/email";
 
 /**
  * GET /api/matches
@@ -133,6 +134,20 @@ export async function POST(req: NextRequest) {
         nextSteps,
       },
     });
+
+    // 7. Send Match Alert Email (non-blocking)
+    sendMatchAlertEmail({
+      to: session.email,
+      name: session.name,
+      scholarshipTitle: scholarship.title,
+      provider: scholarship.provider,
+      score: deterministicResult.eligibilityScore,
+      status: deterministicResult.status,
+      awardAmount: scholarship.awardAmount ?? undefined,
+      currency: scholarship.currency ?? undefined,
+      officialUrl: scholarship.officialUrl ?? undefined,
+      nextSteps: nextSteps,
+    }).catch(() => {});
 
     return successResponse(
       {
