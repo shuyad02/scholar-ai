@@ -132,11 +132,6 @@ export default function LoginPage() {
               Register here
             </Link>
           </p>
-
-          {/* Admin hint */}
-          <div className="mt-4 p-3 bg-indigo-50 rounded-lg text-xs text-indigo-700 text-center">
-            🔑 Admin login: <strong>admin@scholarai.com</strong> / <strong>Admin@1234</strong>
-          </div>
         </div>
       </div>
     </div>
