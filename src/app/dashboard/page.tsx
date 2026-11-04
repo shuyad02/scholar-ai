@@ -18,6 +18,8 @@ import {
   CheckCircle2
 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   let currentUserId: string | null = null;
   let currentUserName = "Scholar";
