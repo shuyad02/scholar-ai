@@ -27,7 +27,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error?.message || "Invalid email or password.");
+        setError(data.message || data.error?.message || "Invalid email or password.");
         setLoading(false);
         return;
       }

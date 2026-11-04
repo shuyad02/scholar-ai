@@ -49,7 +49,7 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error?.message || "Registration failed. Please try again.");
+        setError(data.message || data.error?.message || "Registration failed. Please try again.");
         setLoading(false);
         return;
       }
