@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import {
@@ -21,6 +22,21 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("scholar_user");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed?.role === "ADMIN") {
+          setIsAdmin(true);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   function handleLogout() {
     // Clear JWT cookie and localStorage
@@ -73,19 +89,21 @@ export default function DashboardLayout({
           })}
         </nav>
 
-        {/* Bottom: Admin + Logout */}
+        {/* Bottom: Admin (Only if user is ADMIN) + Logout */}
         <div className="border-t p-4 grid gap-1 shrink-0">
-          <Link
-            href="/admin"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-xs text-muted-foreground transition-all hover:text-primary hover:bg-muted"
-          >
-            <Settings className="h-4 w-4" />
-            Admin Portal
-          </Link>
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 transition-all"
+            >
+              <Settings className="h-4 w-4 text-amber-600" />
+              Admin Portal
+            </Link>
+          )}
 
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-500 hover:bg-red-50 hover:text-red-600 transition-all w-full text-left"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-all w-full text-left font-medium"
           >
             <LogOut className="h-4 w-4" />
             Logout
