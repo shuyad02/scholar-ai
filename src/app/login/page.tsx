@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { GraduationCap, Eye, EyeOff, Loader2 } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect");
+
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -36,11 +39,15 @@ export default function LoginPage() {
       localStorage.setItem("scholar_token", data.data.token);
       localStorage.setItem("scholar_user", JSON.stringify(data.data.user));
 
-      // Route by role: Admins to /admin, Students to /dashboard
+      // Route by role and respect redirect query param
       if (data.data.user?.role === "ADMIN") {
-        router.push("/admin");
+        router.push(redirectUrl?.startsWith("/admin") ? redirectUrl : "/admin");
       } else {
-        router.push("/dashboard");
+        router.push(
+          redirectUrl && !redirectUrl.startsWith("/admin")
+            ? redirectUrl
+            : "/dashboard"
+        );
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -140,5 +147,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }
