@@ -89,9 +89,9 @@ export default function DashboardLayout({
           })}
         </nav>
 
-        {/* Bottom: Admin (Only if user is ADMIN) + Logout */}
-        <div className="border-t p-4 grid gap-1 shrink-0">
-          {isAdmin && (
+        {/* Bottom: Admin Portal (Only if user is ADMIN) */}
+        {isAdmin && (
+          <div className="border-t p-4 shrink-0">
             <Link
               href="/admin"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 transition-all"
@@ -99,16 +99,8 @@ export default function DashboardLayout({
               <Settings className="h-4 w-4 text-amber-600" />
               Admin Portal
             </Link>
-          )}
-
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-all w-full text-left font-medium"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </button>
-        </div>
+          </div>
+        )}
       </aside>
 
       {/* Main Content */}
@@ -118,13 +110,13 @@ export default function DashboardLayout({
             Scholarship Discovery &amp; Eligibility
           </div>
 
-          {/* Top-right logout button (mobile friendly) */}
+          {/* Primary Top-right Logout Button */}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 text-sm text-red-500 hover:text-red-600 font-medium transition-colors"
+            className="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all shadow-sm"
           >
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Logout</span>
+            <LogOut className="h-3.5 w-3.5" />
+            <span>Logout</span>
           </button>
         </header>
 
