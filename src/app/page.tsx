@@ -9,6 +9,8 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   let isLoggedIn = false;
+  let userRole = "STUDENT";
+
   try {
     const authObj = await auth();
     if (authObj?.userId) {
@@ -22,6 +24,7 @@ export default async function Home() {
     const customUser = await getAuthUser();
     if (customUser) {
       isLoggedIn = true;
+      userRole = customUser.role || "STUDENT";
     }
   }
 
@@ -33,19 +36,18 @@ export default async function Home() {
           <GraduationCap className="h-6 w-6 text-primary" />
           <span className="font-bold text-xl tracking-tight">ScholarAI</span>
         </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
-          <Link className="text-sm font-medium hover:text-primary transition-colors" href="/dashboard">
-            Dashboard
-          </Link>
-          <Link className="text-sm font-medium hover:text-primary transition-colors" href="/dashboard/search">
+        <nav className="ml-auto flex gap-3 sm:gap-4 items-center">
+          <Link className="text-sm font-medium hover:text-primary transition-colors hidden sm:inline" href="/dashboard/search">
             Scholarships
           </Link>
-          <Link className="text-sm font-medium hover:text-primary transition-colors" href="/dashboard/assistant">
+          <Link className="text-sm font-medium hover:text-primary transition-colors hidden sm:inline" href="/dashboard/assistant">
             AI Assistant
           </Link>
           {isLoggedIn ? (
-            <Link href="/dashboard">
-              <Button size="sm">Go to Dashboard →</Button>
+            <Link href={userRole === "ADMIN" ? "/admin" : "/dashboard"}>
+              <Button size="sm">
+                {userRole === "ADMIN" ? "Admin Portal →" : "My Dashboard →"}
+              </Button>
             </Link>
           ) : (
             <>
@@ -53,7 +55,7 @@ export default async function Home() {
                 <Button size="sm" variant="outline">Login</Button>
               </Link>
               <Link href="/register">
-                <Button size="sm">Register</Button>
+                <Button size="sm">Get Started</Button>
               </Link>
             </>
           )}
@@ -78,9 +80,14 @@ export default async function Home() {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                <Link href="/dashboard" className="w-full sm:w-auto">
+                <Link
+                  href={isLoggedIn ? (userRole === "ADMIN" ? "/admin" : "/dashboard") : "/register"}
+                  className="w-full sm:w-auto"
+                >
                   <Button size="lg" className="w-full gap-2 text-base h-12 px-8">
-                    Explore Dashboard
+                    {isLoggedIn
+                      ? (userRole === "ADMIN" ? "Open Admin Panel" : "Go to Dashboard")
+                      : "Get Started Free"}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>

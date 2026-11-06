@@ -32,11 +32,16 @@ export default function LoginPage() {
         return;
       }
 
-      // Save token
+      // Save token and user details
       localStorage.setItem("scholar_token", data.data.token);
       localStorage.setItem("scholar_user", JSON.stringify(data.data.user));
 
-      router.push("/dashboard");
+      // Route by role: Admins to /admin, Students to /dashboard
+      if (data.data.user?.role === "ADMIN") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
