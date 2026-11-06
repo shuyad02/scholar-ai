@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { 
   FileText, 
   GraduationCap, 
@@ -43,7 +44,7 @@ export default async function DashboardPage() {
     }
   }
 
-  // 3. Find or auto-provision student record for immediate demonstrability
+  // 3. Find user record
   let dbUser = null;
   if (currentUserId) {
     dbUser = await prisma.user.findFirst({
@@ -54,18 +55,16 @@ export default async function DashboardPage() {
     });
   }
 
-  // Fallback demo user if not logged in yet
-  if (!dbUser) {
-    dbUser = await prisma.user.findFirst({
-      include: { profile: true },
-    });
+  // If user is not authenticated, redirect to /login
+  if (!dbUser && !currentUserId) {
+    redirect("/login");
   }
 
   if (dbUser && dbUser.name) {
     currentUserName = dbUser.name;
   }
 
-  const userId = dbUser?.id || "demo-student";
+  const userId = dbUser?.id || currentUserId || "";
 
   // Fetch real database metrics
   const [activeApplications, totalSaved, totalMatches, recentApps, totalScholarships] = await Promise.all([

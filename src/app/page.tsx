@@ -2,18 +2,27 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Globe2, GraduationCap, Sparkles, BookOpen } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
+import { getAuthUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
+  let isLoggedIn = false;
   try {
     const authObj = await auth();
     if (authObj?.userId) {
-      redirect("/dashboard");
+      isLoggedIn = true;
     }
   } catch {
-    // Continue to landing page if Clerk auth is unconfigured or not logged in
+    // Continue
+  }
+
+  if (!isLoggedIn) {
+    const customUser = await getAuthUser();
+    if (customUser) {
+      isLoggedIn = true;
+    }
   }
 
   return (
@@ -34,12 +43,20 @@ export default async function Home() {
           <Link className="text-sm font-medium hover:text-primary transition-colors" href="/dashboard/assistant">
             AI Assistant
           </Link>
-          <Link href="/login">
-            <Button size="sm" variant="outline">Login</Button>
-          </Link>
-          <Link href="/register">
-            <Button size="sm">Register</Button>
-          </Link>
+          {isLoggedIn ? (
+            <Link href="/dashboard">
+              <Button size="sm">Go to Dashboard →</Button>
+            </Link>
+          ) : (
+            <>
+              <Link href="/login">
+                <Button size="sm" variant="outline">Login</Button>
+              </Link>
+              <Link href="/register">
+                <Button size="sm">Register</Button>
+              </Link>
+            </>
+          )}
         </nav>
       </header>
 

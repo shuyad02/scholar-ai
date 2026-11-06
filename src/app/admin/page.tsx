@@ -49,12 +49,66 @@ export default function AdminDashboardPage() {
 
   // New Scholarship State
   const [showAddForm, setShowAddForm] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newProvider, setNewProvider] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newAward, setNewAward] = useState("35000");
+  const [newCurrency, setNewCurrency] = useState("USD");
+  const [newFundingType, setNewFundingType] = useState("FULLY_FUNDED");
+  const [newEducationLevel, setNewEducationLevel] = useState("MASTERS");
+  const [newMinGpa, setNewMinGpa] = useState("3.0");
+  const [newMinIelts, setNewMinIelts] = useState("6.5");
   const [newDeadline, setNewDeadline] = useState("2026-12-31");
   const [newUrl, setNewUrl] = useState("https://example.com");
+
+  const handleCreateScholarship = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle || !newProvider || !newDesc || !newUrl) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
+    setCreating(true);
+    try {
+      const res = await fetch("/api/admin/scholarships", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newTitle,
+          provider: newProvider,
+          description: newDesc,
+          awardAmount: newAward ? parseFloat(newAward) : null,
+          currency: newCurrency,
+          fundingType: newFundingType,
+          deadline: newDeadline,
+          educationLevels: [newEducationLevel],
+          minGpa: newMinGpa ? parseFloat(newMinGpa) : null,
+          minIelts: newMinIelts ? parseFloat(newMinIelts) : null,
+          officialUrl: newUrl,
+          isVerified: true,
+          isActive: true,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || "Failed to register scholarship");
+      }
+
+      toast.success("Scholarship registered successfully!");
+      setShowAddForm(false);
+      setNewTitle("");
+      setNewProvider("");
+      setNewDesc("");
+      loadScholarships();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error creating scholarship";
+      toast.error(message);
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const loadScholarships = async () => {
     try {
@@ -202,6 +256,15 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="flex gap-2">
+          <Button
+            size="sm"
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="gap-1.5"
+          >
+            <Plus className="h-4 w-4" />
+            {showAddForm ? "Close Form" : "Add New Scholarship"}
+          </Button>
+
           <Link href="/dashboard">
             <Button variant="outline" size="sm">
               Student Dashboard
@@ -239,6 +302,192 @@ export default function AdminDashboardPage() {
           </CardHeader>
         </Card>
       </div>
+
+      {/* Add New Scholarship Form */}
+      {showAddForm && (
+        <Card className="border-primary/50 shadow-md">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Plus className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg">Register New Verified Scholarship</CardTitle>
+            </div>
+            <CardDescription>
+              Add a new official funding opportunity to the public discovery directory.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleCreateScholarship} className="space-y-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="newTitle">Scholarship Title *</Label>
+                  <Input
+                    id="newTitle"
+                    placeholder="e.g. Rhodes Scholarship"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    className="mt-1.5"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="newProvider">Provider / Organization *</Label>
+                  <Input
+                    id="newProvider"
+                    placeholder="e.g. University of Oxford"
+                    value={newProvider}
+                    onChange={(e) => setNewProvider(e.target.value)}
+                    className="mt-1.5"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="newDesc">Description (minimum 20 characters) *</Label>
+                <textarea
+                  id="newDesc"
+                  rows={3}
+                  placeholder="Detail the funding scope, eligibility requirements, and application expectations..."
+                  value={newDesc}
+                  onChange={(e) => setNewDesc(e.target.value)}
+                  className="w-full mt-1.5 rounded-md border border-input bg-background p-3 text-xs leading-relaxed shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  required
+                />
+              </div>
+
+              <div className="grid sm:grid-cols-4 gap-4">
+                <div>
+                  <Label htmlFor="newAward">Award Amount</Label>
+                  <Input
+                    id="newAward"
+                    type="number"
+                    placeholder="e.g. 50000"
+                    value={newAward}
+                    onChange={(e) => setNewAward(e.target.value)}
+                    className="mt-1.5"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="newCurrency">Currency</Label>
+                  <select
+                    id="newCurrency"
+                    value={newCurrency}
+                    onChange={(e) => setNewCurrency(e.target.value)}
+                    className="w-full mt-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
+                  >
+                    <option value="USD">USD ($)</option>
+                    <option value="GBP">GBP (£)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="CAD">CAD ($)</option>
+                    <option value="AUD">AUD ($)</option>
+                    <option value="CHF">CHF (Fr)</option>
+                    <option value="JPY">JPY (¥)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <Label htmlFor="newFundingType">Funding Type</Label>
+                  <select
+                    id="newFundingType"
+                    value={newFundingType}
+                    onChange={(e) => setNewFundingType(e.target.value)}
+                    className="w-full mt-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
+                  >
+                    <option value="FULLY_FUNDED">Fully Funded</option>
+                    <option value="FULL_TUITION">Full Tuition</option>
+                    <option value="PARTIAL">Partial</option>
+                    <option value="STIPEND_ONLY">Stipend Only</option>
+                  </select>
+                </div>
+
+                <div>
+                  <Label htmlFor="newEducationLevel">Degree Level</Label>
+                  <select
+                    id="newEducationLevel"
+                    value={newEducationLevel}
+                    onChange={(e) => setNewEducationLevel(e.target.value)}
+                    className="w-full mt-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
+                  >
+                    <option value="BACHELORS">Bachelor's</option>
+                    <option value="MASTERS">Master's</option>
+                    <option value="PHD">PhD</option>
+                    <option value="POSTDOC">Postdoc</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="newMinGpa">Min GPA (out of 4.0)</Label>
+                  <Input
+                    id="newMinGpa"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 3.5"
+                    value={newMinGpa}
+                    onChange={(e) => setNewMinGpa(e.target.value)}
+                    className="mt-1.5"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="newMinIelts">Min IELTS (0-9)</Label>
+                  <Input
+                    id="newMinIelts"
+                    type="number"
+                    step="0.5"
+                    placeholder="e.g. 7.0"
+                    value={newMinIelts}
+                    onChange={(e) => setNewMinIelts(e.target.value)}
+                    className="mt-1.5"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="newDeadline">Application Deadline *</Label>
+                  <Input
+                    id="newDeadline"
+                    type="date"
+                    value={newDeadline}
+                    onChange={(e) => setNewDeadline(e.target.value)}
+                    className="mt-1.5"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="newUrl">Official Portal URL *</Label>
+                <Input
+                  id="newUrl"
+                  type="url"
+                  placeholder="https://provider.org/apply"
+                  value={newUrl}
+                  onChange={(e) => setNewUrl(e.target.value)}
+                  className="mt-1.5"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-2 justify-end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setShowAddForm(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={creating} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  {creating ? "Registering..." : "Publish Scholarship"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
       {/* RAG Document Ingestion Card */}
       <Card className="border-primary/40 shadow-sm">

@@ -77,6 +77,9 @@ export async function getAuthUser(req?: NextRequest): Promise<SessionUser | null
     if (authHeader && authHeader.startsWith("Bearer ")) {
       token = authHeader.substring(7);
     }
+    if (!token) {
+      token = req.cookies.get("scholar_auth_token")?.value;
+    }
   }
 
   // 2. Check Cookie
