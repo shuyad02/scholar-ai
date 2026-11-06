@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { GraduationCap, Eye, EyeOff, Loader2 } from "lucide-react";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect");
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -58,17 +61,25 @@ export default function RegisterPage() {
       localStorage.setItem("scholar_token", data.data.token);
       localStorage.setItem("scholar_user", JSON.stringify(data.data.user));
 
-      // Route by role: Admins to /admin, Students to /dashboard
+      // Route by role: Admins to /admin, Students to destination or /dashboard
       if (data.data.user?.role === "ADMIN") {
-        router.push("/admin");
+        router.push(redirectUrl?.startsWith("/admin") ? redirectUrl : "/admin");
       } else {
-        router.push("/dashboard");
+        router.push(
+          redirectUrl && !redirectUrl.startsWith("/admin")
+            ? redirectUrl
+            : "/dashboard"
+        );
       }
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
     }
   }
+
+  const loginLink = redirectUrl
+    ? `/login?redirect=${encodeURIComponent(redirectUrl)}`
+    : "/login";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -189,12 +200,20 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-gray-600 mt-6">
             Already have an account?{" "}
-            <Link href="/login" className="text-indigo-600 font-semibold hover:underline">
+            <Link href={loginLink} className="text-indigo-600 font-semibold hover:underline">
               Login here
             </Link>
           </p>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <RegisterForm />
+    </Suspense>
   );
 }

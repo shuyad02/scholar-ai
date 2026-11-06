@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
 import { getAuthUser } from "@/lib/auth";
+import { HomeAuthNav } from "@/components/home-auth-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,14 @@ export default async function Home() {
       userRole = customUser.role || "STUDENT";
     }
   }
+
+  // Dynamic URLs based on authentication state
+  const searchHref = isLoggedIn ? "/dashboard/search" : "/login?redirect=%2Fdashboard%2Fsearch";
+  const copilotHref = isLoggedIn ? "/dashboard/assistant" : "/login?redirect=%2Fdashboard%2Fassistant";
+  const matchesHref = isLoggedIn ? "/dashboard/matches" : "/login?redirect=%2Fdashboard%2Fmatches";
+  const applicationsHref = isLoggedIn ? "/dashboard/applications" : "/login?redirect=%2Fdashboard%2Fapplications";
+  const heroPrimaryHref = isLoggedIn ? (userRole === "ADMIN" ? "/admin" : "/dashboard") : "/register";
+  const heroPrimaryText = isLoggedIn ? (userRole === "ADMIN" ? "Admin Control" : "Go to Dashboard") : "Get Started Free";
 
   const featuredScholarships = [
     {
@@ -100,28 +109,17 @@ export default async function Home() {
         </Link>
 
         <nav className="flex items-center gap-3 sm:gap-6">
-          <Link className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors hidden md:inline" href="/dashboard/search">
+          <Link className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors hidden md:inline" href={searchHref}>
             Find Scholarships
           </Link>
-          <Link className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors hidden md:inline" href="/dashboard/assistant">
+          <Link className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors hidden md:inline" href={copilotHref}>
             AI Copilot
           </Link>
           <Link className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors hidden md:inline" href="#how-it-works">
             How It Works
           </Link>
 
-          <div className="flex items-center gap-2.5">
-            <Link href="/login">
-              <Button size="sm" variant="outline" className="font-semibold px-4">
-                Login
-              </Button>
-            </Link>
-            <Link href="/register">
-              <Button size="sm" className="font-semibold shadow-sm bg-indigo-600 hover:bg-indigo-700 text-white px-4">
-                Sign Up
-              </Button>
-            </Link>
-          </div>
+          <HomeAuthNav isLoggedIn={isLoggedIn} role={userRole} />
         </nav>
       </header>
 
@@ -148,13 +146,13 @@ export default async function Home() {
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto pt-2">
-                <Link href="/register" className="w-full sm:w-auto">
+                <Link href={heroPrimaryHref} className="w-full sm:w-auto">
                   <Button size="lg" className="w-full gap-2 text-base h-13 px-8 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/20 font-bold">
-                    Get Started Free
+                    {heroPrimaryText}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
-                <Link href="/dashboard/search" className="w-full sm:w-auto">
+                <Link href={searchHref} className="w-full sm:w-auto">
                   <Button size="lg" variant="outline" className="w-full h-13 px-8 text-base font-semibold">
                     Explore Scholarships Directory
                   </Button>
@@ -199,7 +197,7 @@ export default async function Home() {
                   Accurately indexed from official government portals and top university trusts with explicit eligibility rules.
                 </p>
               </div>
-              <Link href="/dashboard/search">
+              <Link href={searchHref}>
                 <Button variant="ghost" className="gap-1.5 text-primary font-semibold">
                   View All Opportunities <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -239,7 +237,7 @@ export default async function Home() {
                     </div>
                   </CardContent>
                   <div className="p-4 pt-0">
-                    <Link href="/register">
+                    <Link href={matchesHref}>
                       <Button variant="outline" size="sm" className="w-full text-xs font-semibold">
                         Check My Eligibility
                       </Button>
@@ -457,9 +455,9 @@ export default async function Home() {
               Join students discovering verified international funding opportunities with AI-assisted guidance and zero guesswork.
             </p>
             <div className="pt-2">
-              <Link href="/register">
+              <Link href={heroPrimaryHref}>
                 <Button size="lg" className="h-12 px-8 bg-white text-indigo-900 hover:bg-indigo-50 font-bold shadow-xl gap-2">
-                  Create Your Free Account <ArrowRight className="h-4 w-4" />
+                  {isLoggedIn ? heroPrimaryText : "Create Your Free Account"} <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
             </div>
@@ -486,10 +484,10 @@ export default async function Home() {
           <div className="space-y-2">
             <h5 className="font-bold text-foreground uppercase tracking-wider text-[11px]">Platform</h5>
             <ul className="space-y-1.5 text-muted-foreground">
-              <li><Link href="/dashboard/search" className="hover:text-primary transition-colors">Scholarship Directory</Link></li>
-              <li><Link href="/dashboard/matches" className="hover:text-primary transition-colors">AI Eligibility Engine</Link></li>
-              <li><Link href="/dashboard/assistant" className="hover:text-primary transition-colors">RAG AI Copilot</Link></li>
-              <li><Link href="/dashboard/applications" className="hover:text-primary transition-colors">Application Tracker</Link></li>
+              <li><Link href={searchHref} className="hover:text-primary transition-colors">Scholarship Directory</Link></li>
+              <li><Link href={matchesHref} className="hover:text-primary transition-colors">AI Eligibility Engine</Link></li>
+              <li><Link href={copilotHref} className="hover:text-primary transition-colors">RAG AI Copilot</Link></li>
+              <li><Link href={applicationsHref} className="hover:text-primary transition-colors">Application Tracker</Link></li>
             </ul>
           </div>
 
