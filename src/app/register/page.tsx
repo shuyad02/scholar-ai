@@ -61,14 +61,15 @@ function RegisterForm() {
       localStorage.setItem("scholar_token", data.data.token);
       localStorage.setItem("scholar_user", JSON.stringify(data.data.user));
 
-      // Route by role: Admins to /admin, Students to destination or /dashboard
+      // Route by role: Admins to /admin, Students to onboarding (or redirect destination)
       if (data.data.user?.role === "ADMIN") {
         router.push(redirectUrl?.startsWith("/admin") ? redirectUrl : "/admin");
       } else {
+        // New students go to onboarding first (unless a specific redirect was set)
         router.push(
           redirectUrl && !redirectUrl.startsWith("/admin")
             ? redirectUrl
-            : "/dashboard"
+            : "/onboarding"
         );
       }
     } catch {

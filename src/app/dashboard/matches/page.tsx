@@ -97,7 +97,7 @@ export default function MatchesPage() {
             onClick={() => setSelectedFilter(tab)}
             className="text-xs"
           >
-            {tab.replace("_", " ")}
+            {tab.split("_").join(" ")}
           </Button>
         ))}
       </div>
@@ -141,7 +141,7 @@ export default function MatchesPage() {
                           {m.eligibilityScore}% Match
                         </Badge>
                         <Badge variant="outline" className="text-xs">
-                          {m.status.replace("_", " ")}
+                        {m.status.split("_").join(" ")}
                         </Badge>
                       </div>
                       <CardTitle className="text-xl">{m.scholarship.title}</CardTitle>

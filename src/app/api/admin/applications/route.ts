@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/auth";
 import { successResponse, errorResponse, AppError } from "@/lib/api-response";
-import { sendEmail } from "@/lib/email";
+import { sendApplicationUpdateEmail } from "@/lib/email";
 import { ApplicationStatus } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
@@ -62,22 +62,21 @@ export async function PATCH(req: NextRequest) {
       },
       include: {
         user: { select: { email: true, name: true } },
-        scholarship: { select: { title: true } },
+        scholarship: { select: { title: true, provider: true } },
       },
     });
 
     // Send email alert for important status changes
     if (["APPROVED", "REJECTED", "UNDER_REVIEW"].includes(status)) {
       try {
-        await sendEmail({
+        await sendApplicationUpdateEmail({
           to: application.user.email,
-          subject: `Scholarship Application Status Update: ${application.scholarship.title}`,
-          html: `
-            <h2>Application Update</h2>
-            <p>Dear ${application.user.name},</p>
-            <p>The status of your application for <strong>${application.scholarship.title}</strong> has been updated to: <strong>${status}</strong>.</p>
-            <p>Log in to your ScholarAI student dashboard to review details and next steps.</p>
-          `,
+          name: application.user.name || "Student",
+          scholarshipTitle: application.scholarship.title,
+          provider: application.scholarship.provider,
+          oldStatus: "PREVIOUS",
+          newStatus: status,
+          notes,
         });
       } catch (mailErr) {
         console.error("Failed to send status update email:", mailErr);

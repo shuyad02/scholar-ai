@@ -1,23 +1,23 @@
-import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/auth";
 import OnboardingForm from "./onboarding-form";
 
 export default async function OnboardingPage() {
-  const { userId } = await auth();
+  const authUser = await getAuthUser();
 
-  if (!userId) {
-    redirect("/sign-in");
+  if (!authUser) {
+    redirect("/login?redirect=%2Fonboarding");
   }
 
   // Check if profile already exists
   const user = await prisma.user.findUnique({
-    where: { clerkId: userId },
+    where: { id: authUser.id },
     include: { profile: true },
   });
 
   if (user?.profile) {
-    // If profile exists, onboarding is done
+    // Profile already exists — skip onboarding
     redirect("/dashboard");
   }
 
@@ -27,11 +27,11 @@ export default async function OnboardingPage() {
         <div className="p-8 border-b bg-muted/50">
           <h1 className="text-2xl font-bold">Welcome to ScholarAI! 🎓</h1>
           <p className="text-muted-foreground mt-2">
-            Let's set up your academic profile so our AI can match you with the best scholarships.
+            Let&apos;s set up your academic profile so our AI can match you with the best scholarships.
           </p>
         </div>
         <div className="p-8">
-          <OnboardingForm userId={userId} dbUserId={user?.id} />
+          <OnboardingForm userId={authUser.id} dbUserId={user?.id} />
         </div>
       </div>
     </div>

@@ -105,7 +105,7 @@ export default function ApplicationsPage() {
         throw new Error(json.message || "Failed to update status on server");
       }
 
-      toast.success(`Status updated to ${newStatus.replace("_", " ")}`);
+      toast.success(`Status updated to ${newStatus.split("_").join(" ")}`);
     } catch (error) {
       // Rollback on failure
       setApplications(previousApplications);
@@ -266,7 +266,7 @@ export default function ApplicationsPage() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-xs">
-                          {app.scholarship.fundingType.replace("_", " ")}
+                          {app.scholarship.fundingType.split("_").join(" ")}
                         </Badge>
                         {daysLeft !== null && (
                           <Badge

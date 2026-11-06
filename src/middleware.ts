@@ -9,9 +9,8 @@ const JWT_SECRET = new TextEncoder().encode(
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Protect /dashboard and all subroutes (/dashboard/search, /dashboard/matches, etc.)
-  // Protect /admin and all subroutes
-  if (pathname.startsWith("/dashboard") || pathname.startsWith("/admin")) {
+  // Protect /dashboard, /admin, and /onboarding routes
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/admin") || pathname.startsWith("/onboarding")) {
     const token = req.cookies.get("scholar_auth_token")?.value;
 
     if (!token) {
@@ -40,5 +39,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*"],
+  matcher: ["/dashboard/:path*", "/admin/:path*", "/onboarding/:path*", "/onboarding"],
 };

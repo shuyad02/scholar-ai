@@ -207,15 +207,28 @@ export default function AssistantPage() {
                       ) : (
                         <AlertTriangle className="h-3 w-3 mr-1 inline" />
                       )}
-                      {m.confidence.replace("_", " ")}
+                      {m.confidence.split("_").join(" ")}
                     </Badge>
                   </div>
                 )}
 
-                {/* Message Body */}
-                <div className="whitespace-pre-wrap leading-relaxed text-sm">
-                  {m.text}
-                </div>
+                {/* Message Body — parse basic markdown: **bold**, *italic*, newlines */}
+                <div
+                  className="leading-relaxed text-sm"
+                  dangerouslySetInnerHTML={{
+                    __html: m.text
+                      // Escape HTML first to prevent XSS
+                      .replace(/&/g, "&amp;")
+                      .replace(/</g, "&lt;")
+                      .replace(/>/g, "&gt;")
+                      // Bold: **text**
+                      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+                      // Italic: *text*
+                      .replace(/\*(.+?)\*/g, "<em>$1</em>")
+                      // Newlines → <br>
+                      .replace(/\n/g, "<br />"),
+                  }}
+                />
 
                 {/* Referenced Scholarships */}
                 {!isUser && m.scholarshipsReferenced && m.scholarshipsReferenced.length > 0 && (

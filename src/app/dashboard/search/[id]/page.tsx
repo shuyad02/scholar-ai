@@ -158,7 +158,7 @@ export default function ScholarshipDetailPage({ params }: { params: Promise<{ id
               {scholarship.isVerified && <ShieldCheck className="h-3.5 w-3.5" />}
               {scholarship.isVerified ? "Verified Official Scholarship" : "Unverified"}
             </Badge>
-            <Badge variant="outline">{scholarship.fundingType.replace("_", " ")}</Badge>
+            <Badge variant="outline">{scholarship.fundingType.split("_").join(" ")}</Badge>
           </div>
 
           <CardTitle className="text-2xl font-bold">{scholarship.title}</CardTitle>
@@ -245,7 +245,7 @@ export default function ScholarshipDetailPage({ params }: { params: Promise<{ id
                     : "bg-rose-600"
                 }
               >
-                {matchResult.eligibilityScore}% Match ({matchResult.status.replace("_", " ")})
+                {matchResult.eligibilityScore}% Match ({matchResult.status.split("_").join(" ")})
               </Badge>
             </div>
             <CardDescription>{matchResult.explanation}</CardDescription>

@@ -1,4 +1,3 @@
-import { NextResponse } from "next/navigation";
 import { ZodError } from "zod";
 
 export interface ApiResponseMeta {

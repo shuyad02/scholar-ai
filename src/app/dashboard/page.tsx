@@ -1,4 +1,3 @@
-import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,23 +24,11 @@ export default async function DashboardPage() {
   let currentUserId: string | null = null;
   let currentUserName = "Scholar";
 
-  // 1. Try Clerk Auth first
-  try {
-    const clerkAuth = await auth();
-    if (clerkAuth?.userId) {
-      currentUserId = clerkAuth.userId;
-    }
-  } catch {
-    // Clerk not configured or bypassed
-  }
-
-  // 2. Try Custom JWT Session fallback
-  if (!currentUserId) {
-    const customUser = await getAuthUser();
-    if (customUser) {
-      currentUserId = customUser.id;
-      currentUserName = customUser.name || "Scholar";
-    }
+  // Custom JWT Session
+  const customUser = await getAuthUser();
+  if (customUser) {
+    currentUserId = customUser.id;
+    currentUserName = customUser.name || "Scholar";
   }
 
   // 3. Find user record
@@ -91,7 +78,22 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  const profileStrength = dbUser?.profile ? 90 : 40;
+  // Calculate real profile strength based on filled fields
+  let profileStrength = 10; // base for having an account
+  if (dbUser?.profile) {
+    const p = dbUser.profile;
+    if (p.fieldOfStudy) profileStrength += 10;
+    if (p.countryOfOrigin) profileStrength += 10;
+    if (p.currentCountry) profileStrength += 10;
+    if (p.gpa !== null && p.gpa !== undefined) profileStrength += 15;
+    if (p.graduationYear) profileStrength += 10;
+    if (p.ieltsScore !== null || p.toeflScore !== null) profileStrength += 15;
+    if (p.greScore !== null) profileStrength += 5;
+    if (p.familyIncomeUsd !== null) profileStrength += 5;
+    if (p.achievements) profileStrength += 5;
+    if (p.skills && p.skills.length > 0) profileStrength += 5;
+  }
+  profileStrength = Math.min(profileStrength, 100);
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
@@ -182,11 +184,11 @@ export default async function DashboardPage() {
                     <div className="space-y-1">
                       <p className="text-sm font-semibold">{app.scholarship.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        {app.scholarship.provider} • {app.status.replace("_", " ")}
+                        {app.scholarship.provider} • {app.status.split("_").join(" ")}
                       </p>
                     </div>
                     <Badge variant={app.status === "APPROVED" ? "default" : "secondary"} className="text-xs">
-                      {app.status.replace("_", " ")}
+                      {app.status.split("_").join(" ")}
                     </Badge>
                   </div>
                 ))}

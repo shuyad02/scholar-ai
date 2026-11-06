@@ -21,7 +21,6 @@ import {
   ChevronRight,
   HelpCircle
 } from "lucide-react";
-import { auth } from "@clerk/nextjs/server";
 import { getAuthUser } from "@/lib/auth";
 import { HomeAuthNav } from "@/components/home-auth-nav";
 
@@ -31,21 +30,10 @@ export default async function Home() {
   let isLoggedIn = false;
   let userRole = "STUDENT";
 
-  try {
-    const authObj = await auth();
-    if (authObj?.userId) {
-      isLoggedIn = true;
-    }
-  } catch {
-    // Continue
-  }
-
-  if (!isLoggedIn) {
-    const customUser = await getAuthUser();
-    if (customUser) {
-      isLoggedIn = true;
-      userRole = customUser.role || "STUDENT";
-    }
+  const customUser = await getAuthUser();
+  if (customUser) {
+    isLoggedIn = true;
+    userRole = customUser.role || "STUDENT";
   }
 
   // Dynamic URLs based on authentication state
