@@ -38,13 +38,19 @@ export default function DashboardLayout({
     }
   }, []);
 
-  function handleLogout() {
-    // Clear JWT cookie and localStorage
+  async function handleLogout() {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+    // Clear JWT cookie from document and clear localStorage
     document.cookie =
       "scholar_auth_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
     localStorage.removeItem("scholar_token");
     localStorage.removeItem("scholar_user");
     router.push("/login");
+    router.refresh();
   }
 
   const navLinks = [

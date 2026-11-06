@@ -17,9 +17,11 @@ import {
   CheckCircle, 
   XCircle, 
   Lock,
-  ArrowLeft
+  ArrowLeft,
+  LogOut
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 interface AdminScholarship {
@@ -36,9 +38,23 @@ interface AdminScholarship {
 }
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
   const [scholarships, setScholarships] = useState<AdminScholarship[]>([]);
   const [loading, setLoading] = useState(true);
   const [unauthorized, setUnauthorized] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+    document.cookie = "scholar_auth_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    localStorage.removeItem("scholar_token");
+    localStorage.removeItem("scholar_user");
+    router.push("/login");
+    router.refresh();
+  };
 
   // Ingestion Modal State
   const [selectedScholarshipId, setSelectedScholarshipId] = useState("");
@@ -270,6 +286,16 @@ export default function AdminDashboardPage() {
               Student Dashboard
             </Button>
           </Link>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleLogout}
+            className="gap-1.5 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Logout
+          </Button>
         </div>
       </div>
 
