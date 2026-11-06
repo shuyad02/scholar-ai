@@ -38,27 +38,22 @@ export default async function Home() {
         </Link>
         <nav className="ml-auto flex gap-3 sm:gap-4 items-center">
           <Link className="text-sm font-medium hover:text-primary transition-colors hidden sm:inline" href="/dashboard/search">
-            Scholarships
+            Find Scholarships
           </Link>
           <Link className="text-sm font-medium hover:text-primary transition-colors hidden sm:inline" href="/dashboard/assistant">
             AI Assistant
           </Link>
-          {isLoggedIn ? (
-            <Link href={userRole === "ADMIN" ? "/admin" : "/dashboard"}>
-              <Button size="sm">
-                {userRole === "ADMIN" ? "Admin Portal →" : "My Dashboard →"}
-              </Button>
+          {isLoggedIn && (
+            <Link className="text-sm font-medium text-primary hover:underline" href={userRole === "ADMIN" ? "/admin" : "/dashboard"}>
+              {userRole === "ADMIN" ? "Admin Panel" : "My Dashboard"}
             </Link>
-          ) : (
-            <>
-              <Link href="/login">
-                <Button size="sm" variant="outline">Login</Button>
-              </Link>
-              <Link href="/register">
-                <Button size="sm">Get Started</Button>
-              </Link>
-            </>
           )}
+          <Link href="/login">
+            <Button size="sm" variant="outline">Login</Button>
+          </Link>
+          <Link href="/register">
+            <Button size="sm">Sign Up</Button>
+          </Link>
         </nav>
       </header>
 
@@ -80,20 +75,15 @@ export default async function Home() {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                <Link
-                  href={isLoggedIn ? (userRole === "ADMIN" ? "/admin" : "/dashboard") : "/register"}
-                  className="w-full sm:w-auto"
-                >
+                <Link href="/register" className="w-full sm:w-auto">
                   <Button size="lg" className="w-full gap-2 text-base h-12 px-8">
-                    {isLoggedIn
-                      ? (userRole === "ADMIN" ? "Open Admin Panel" : "Go to Dashboard")
-                      : "Get Started Free"}
+                    Get Started / Sign Up
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
                 <Link href="/dashboard/search" className="w-full sm:w-auto">
                   <Button size="lg" variant="outline" className="w-full h-12 px-8 text-base">
-                    Find Scholarships
+                    Explore Scholarships
                   </Button>
                 </Link>
               </div>
