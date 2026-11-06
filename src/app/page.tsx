@@ -110,27 +110,18 @@ export default async function Home() {
             How It Works
           </Link>
 
-          {isLoggedIn ? (
-            <Link href={userRole === "ADMIN" ? "/admin" : "/dashboard"}>
-              <Button size="sm" className="gap-1.5 shadow-sm">
-                {userRole === "ADMIN" ? "Admin Portal" : "Go to Dashboard"}
-                <ArrowRight className="h-3.5 w-3.5" />
+          <div className="flex items-center gap-2.5">
+            <Link href="/login">
+              <Button size="sm" variant="outline" className="font-semibold px-4">
+                Login
               </Button>
             </Link>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Link href="/login">
-                <Button size="sm" variant="outline" className="font-semibold">
-                  Login
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button size="sm" className="font-semibold shadow-sm bg-indigo-600 hover:bg-indigo-700 text-white">
-                  Sign Up
-                </Button>
-              </Link>
-            </div>
-          )}
+            <Link href="/register">
+              <Button size="sm" className="font-semibold shadow-sm bg-indigo-600 hover:bg-indigo-700 text-white px-4">
+                Sign Up
+              </Button>
+            </Link>
+          </div>
         </nav>
       </header>
 
